@@ -1,7 +1,14 @@
-# Slow–Fast Perspective on Psychopathology Networks
+<h1 align="center">Rethinking Group Differences in Psychopathology Networks</h1>
+<p align="center"><em>The Role of Slowly Varying Contextual Conditions</em></p>
 
 <p align="center">
-  <img src="figs/slowfast.png" width="460" alt="Coupled slow–fast perspective linking contextual conditions and depressive symptoms">
+  <img src="https://img.shields.io/badge/language-R-276DC3?logo=r&logoColor=white" alt="Language: R">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
+  <img src="https://img.shields.io/badge/status-preprint%20coming%20soon-yellow" alt="Status: preprint coming soon">
+</p>
+
+<p align="center">
+  <img src="figs/revised/figure_01_slow_fast_concept.png" width="600" alt="Slower contextual conditions may shift symptom activation and/or symptom-symptom interactions in the fast symptom layer">
 </p>
 
 This repository contains the analysis and figure-generation code for the manuscript:
@@ -9,8 +16,6 @@ This repository contains the analysis and figure-generation code for the manuscr
 > **Rethinking Group Differences in Psychopathology Networks: The Role of Slowly Varying Contextual Conditions**
 
 The project develops a **slow–fast perspective** on group differences in psychopathology networks. Depressive symptoms are treated as a relatively fast-changing system, while social, economic, psychosocial, health-related, and lifestyle conditions form a more slowly varying contextual layer. The central question is whether group differences in depressive symptom expression are reflected in symptom–symptom interactions, symptom-activation parameters, or both.
-
-*A preprint will be added here soon.*
 
 ## Study overview
 
@@ -31,10 +36,12 @@ Because there are only nine binary symptoms, the Ising partition function can be
 ## Repository structure
 
 ```text
-slow-fast-perspective/
+coupling-timescale-perspective/
 ├── R/                         # Data preparation and statistical analyses
-├── fig_scripts/               # Figure-generation scripts
-├── figs/                      # Manuscript figures
+├── fig_scripts/
+│   └── revised/               # Current figure-generation scripts (01-05, A1)
+├── figs/
+│   └── revised/               # Current manuscript figures — everything else in figs/ is an earlier iteration, kept for provenance
 ├── results/
 │   ├── network_invariance_exact/
 │   │   └── slow_risk/
@@ -43,7 +50,7 @@ slow-fast-perspective/
 │   ├── appendix/              # Appendix tables and figures
 │   └── figure_data/           # Data used to generate figures
 ├── archive/                   # Superseded and exploratory code
-└── slow-fast-perspective.Rproj
+└── coupling-timescale-perspective.Rproj
 ```
 
 The current definitive multigroup analysis is stored under:
@@ -112,6 +119,7 @@ A formal citation and preprint link will be added when the manuscript is posted.
 For now, please cite this repository as:
 
 ```text
-Park, K. et al. Slow–Fast Perspective on Psychopathology Networks.
-GitHub repository: https://github.com/KyuriP/slow-fast-perspective
+Park, K. et al. Rethinking Group Differences in Psychopathology Networks:
+The Role of Slowly Varying Contextual Conditions.
+GitHub repository: https://github.com/KyuriP/coupling-timescale-perspective
 ```
