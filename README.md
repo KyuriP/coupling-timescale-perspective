@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="figs/revised/figure_01_slow_fast_concept.png" width="600" alt="Slower contextual conditions may shift symptom activation and/or symptom-symptom interactions in the fast symptom layer">
+  <img src="figs/slowfast.png" width="460" alt="Coupled slow–fast perspective linking contextual conditions and depressive symptoms">
 </p>
 
 This repository contains the analysis and figure-generation code for the manuscript:
