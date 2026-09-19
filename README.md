@@ -4,7 +4,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/language-R-276DC3?logo=r&logoColor=white" alt="Language: R">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
-  <img src="https://img.shields.io/badge/status-preprint%20coming%20soon-yellow" alt="Status: preprint coming soon">
+  <a href="https://osf.io/preprints/psyarxiv/u8wf5_v1"><img src="https://img.shields.io/badge/preprint-PsyArXiv-1B75BC" alt="Preprint: available on PsyArXiv"></a>
 </p>
 
 <p align="center">
@@ -114,9 +114,12 @@ Install any missing packages before running the pipeline. Package versions will 
 
 ## Citation
 
-A formal citation and preprint link will be added when the manuscript is posted.
+The preprint is available on PsyArXiv:
 
-For now, please cite this repository as:
+> Park, K. et al. Rethinking Group Differences in Psychopathology Networks: A Slow-Fast Perspective on Context and Symptom Activation. *PsyArXiv*.
+> https://osf.io/preprints/psyarxiv/u8wf5_v1
+
+To cite this repository specifically:
 
 ```text
 Park, K. et al. Rethinking Group Differences in Psychopathology Networks:
