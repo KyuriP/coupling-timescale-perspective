@@ -1,0 +1,60 @@
+Revision analyses 2026-10-20 12:30
+Records in source dataset: 24780
+
+== F: within Dutch (n = 4609) ==
+                                   model    k            LL           AIC           BIC      max_grad  iter
+0               F[Dutch]: both moderated  108 -18261.697533  36739.395066  37434.457815  9.503509e-14     9
+1    F[Dutch]: activation moderated only   72 -18283.504933  36711.009865  37174.385031  1.354151e-09     7
+2  F[Dutch]: interactions moderated only   99 -18312.424616  36822.849232  37459.990085  2.091660e-13     9
+3            F[Dutch]: neither moderated   63 -18819.496555  37764.993110  38170.446381  6.121716e-10     7
+                     test       chisq  df             p
+0  interaction moderation   43.614799  36  1.792228e-01
+1   activation moderation  101.454166   9  7.990977e-18
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_z  0.6711  0.1349  0.4067  0.9355  1.9564  1.5018  2.5486  0.0000  0.0000
+1     dep  srl_z  0.4367  0.1646  0.1140  0.7593  1.5475  1.1208  2.1368  0.0080  0.0479
+2     slp  srl_z  0.1856  0.0977 -0.0059  0.3772  1.2040  0.9941  1.4582  0.0575  0.1724
+3     ene  srl_z  0.1372  0.0968 -0.0525  0.3269  1.1470  0.9488  1.3866  0.1564  0.3127
+4     app  srl_z  0.3677  0.1509  0.0719  0.6635  1.4444  1.0746  1.9415  0.0148  0.0741
+5     glt  srl_z  0.4734  0.1554  0.1688  0.7780  1.6055  1.1839  2.1772  0.0023  0.0162
+6     con  srl_z  0.4719  0.1413  0.1950  0.7488  1.6030  1.2153  2.1144  0.0008  0.0067
+7     mot  srl_z  0.4274  0.1971  0.0411  0.8137  1.5332  1.0419  2.2562  0.0301  0.1205
+8     sui  srl_z -0.3100  0.4141 -1.1216  0.5016  0.7334  0.3258  1.6514  0.4541  0.4541
+                                         model   k            LL           AIC           BIC      max_grad  iter
+0               F[Dutch] split: both moderated  90 -18802.974289  37785.948578  38365.167535  1.066915e-10     9
+1    F[Dutch] split: activation moderated only  54 -18828.294311  37764.588623  38112.119997  6.660201e-10     7
+2  F[Dutch] split: interactions moderated only  81 -18816.535433  37795.070867  38316.367928  3.949729e-12     8
+3            F[Dutch] split: neither moderated  45 -19052.638584  38195.277168  38484.886647  3.496741e-10     7
+                     test      chisq  df         p
+0  interaction moderation  50.640045  36  0.053565
+1   activation moderation  27.122289   9  0.001335
+
+== F: within nonDutch (n = 18661) ==
+                                      model    k            LL            AIC            BIC      max_grad  iter
+0               F[nonDutch]: both moderated  108 -71869.160081  143954.320162  144800.412796  7.496226e-13    11
+1    F[nonDutch]: activation moderated only   72 -71906.104684  143956.209368  144520.271124  8.511414e-12     7
+2  F[nonDutch]: interactions moderated only   99 -72109.233782  144416.467565  145192.052480  3.162981e-11     9
+3            F[nonDutch]: neither moderated   63 -75001.918259  150129.836518  150623.390555  1.468106e-11     7
+                     test       chisq  df             p
+0  interaction moderation   73.889206  36  2.016113e-04
+1   activation moderation  480.147403   9  1.021478e-97
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_z  0.2499  0.0432  0.1652  0.3346  1.2839  1.1796  1.3974  0.0000  0.0000
+1     dep  srl_z  0.4002  0.0627  0.2773  0.5230  1.4921  1.3196  1.6871  0.0000  0.0000
+2     slp  srl_z  0.1703  0.0431  0.0858  0.2548  1.1857  1.0896  1.2902  0.0001  0.0002
+3     ene  srl_z  0.2394  0.0353  0.1702  0.3087  1.2705  1.1855  1.3616  0.0000  0.0000
+4     app  srl_z  0.2422  0.0500  0.1443  0.3401  1.2740  1.1552  1.4051  0.0000  0.0000
+5     glt  srl_z  0.3820  0.0672  0.2503  0.5136  1.4651  1.2844  1.6713  0.0000  0.0000
+6     con  srl_z  0.2751  0.0594  0.1586  0.3915  1.3166  1.1719  1.4792  0.0000  0.0000
+7     mot  srl_z  0.5311  0.0753  0.3835  0.6786  1.7007  1.4674  1.9712  0.0000  0.0000
+8     sui  srl_z  0.4080  0.1187  0.1754  0.6406  1.5038  1.1918  1.8976  0.0006  0.0006
+                                            model   k            LL            AIC            BIC      max_grad  iter
+0               F[nonDutch] split: both moderated  90 -74237.904369  148655.808738  149360.885934  6.647127e-12     8
+1    F[nonDutch] split: activation moderated only  54 -74261.922594  148631.845188  149054.891505  5.892217e-11     7
+2  F[nonDutch] split: interactions moderated only  81 -74309.912047  148781.824094  149416.393570  8.365626e-11     7
+3            F[nonDutch] split: neither moderated  45 -75612.298708  151314.597416  151667.136013  1.386171e-10     7
+                     test       chisq  df             p
+0  interaction moderation   48.036449  36  8.656544e-02
+1   activation moderation  144.015356   9  1.527460e-26
+
+Done in 32s

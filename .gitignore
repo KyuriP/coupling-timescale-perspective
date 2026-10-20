@@ -2,3 +2,4 @@
 /data
 /exploration
 .Rproj.user
+/results/revision_analyses/*.rds

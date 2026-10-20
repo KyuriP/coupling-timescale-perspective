@@ -1,0 +1,95 @@
+Revision analyses 2026-10-20 12:13
+Records in source dataset: 24780
+
+== C0: original SRL. descriptive n = 23689, network n = 23283 (manuscript: 23,689 / 23,283)
+   Low/High n = 11717/11566 (manuscript: 11,717/11,566)
+                                     model   k            LL            AIC            BIC      max_grad  iter
+0               orig split: both moderated  90 -93555.199574  187290.399148  188015.392236  2.348521e-11     9
+1    orig split: activation moderated only  54 -93614.783074  187337.566147  187772.562000  7.597012e-11     7
+2  orig split: interactions moderated only  81 -93611.509183  187385.018365  188037.512145  5.947634e-10     7
+3            orig split: neither moderated  45 -95229.028586  190548.057172  190910.553716  1.723710e-10     7
+                     test                               restricted                        full       chisq  df             p
+0  interaction moderation    orig split: activation moderated only  orig split: both moderated  119.167000  36  7.786799e-11
+1   activation moderation  orig split: interactions moderated only  orig split: both moderated  112.619217   9  4.303163e-20
+   Table 1 LL: -93555.20 / -93614.78 / -93611.51 / -95229.03
+
+== A: exclusion flow (revised SRL) ==
+                                 step     n
+                       Source records 24780
+   Revised SRL computable + PHQ total 23677
+       + age, sex, ethnicity observed 23676
++ all nine PHQ items (network sample) 23270
+   original-SRL sample dropped by the completion rule: 12
+   indicators per person: min 6, median 15, max 15
+   corr(revised, original) = 0.976; corr(revised, non-overlap) = 0.806
+
+== C0b: revised SRL, median split ==
+                                        model   k            LL            AIC            BIC      max_grad  iter
+0               revised split: both moderated  90 -93504.174141  187188.348282  187913.291105  1.380407e-11     9
+1    revised split: activation moderated only  54 -93555.170761  187218.341523  187653.307217  1.387279e-10     7
+2  revised split: interactions moderated only  81 -93568.952057  187299.904114  187952.352655  6.792149e-10     7
+3            revised split: neither moderated  45 -95186.210622  190462.421245  190824.892656  1.964173e-10     7
+                     test                                  restricted                           full       chisq  df             p
+0  interaction moderation    revised split: activation moderated only  revised split: both moderated  101.993241  36  3.161046e-08
+1   activation moderation  revised split: interactions moderated only  revised split: both moderated  129.555832   9  1.463492e-23
+
+== C: moderated Ising, revised SRL (continuous), item >= 1 ==
+                            model    k            LL            AIC            BIC      max_grad  iter
+0               C: both moderated  153 -90257.188681  180820.377362  182052.780161  9.023893e-13     9
+1    C: activation moderated only  117 -90299.013171  180832.026343  181774.452013  1.197962e-09     7
+2  C: interactions moderated only  144 -90540.745900  181369.491800  182529.400316  2.048037e-10     8
+3            C: neither moderated  108 -93919.032680  188054.065360  188923.996747  3.997673e-10     7
+                     test       chisq  df              p
+0  interaction moderation   83.648981  36   1.161771e-05
+1   activation moderation  567.114438   9  2.380331e-116
+2   equal SRL slopes on h   33.343176   8   5.340782e-05
+SRL effect on activation (log-odds per SD; full model):
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_z  0.2864  0.0411  0.2059  0.3669  1.3317  1.2287  1.4432  0.0000  0.0000
+1     dep  srl_z  0.4045  0.0583  0.2902  0.5189  1.4986  1.3367  1.6801  0.0000  0.0000
+2     slp  srl_z  0.1685  0.0391  0.0918  0.2453  1.1836  1.0962  1.2780  0.0000  0.0000
+3     ene  srl_z  0.2329  0.0331  0.1681  0.2978  1.2623  1.1831  1.3468  0.0000  0.0000
+4     app  srl_z  0.2613  0.0473  0.1687  0.3540  1.2987  1.1837  1.4248  0.0000  0.0000
+5     glt  srl_z  0.3909  0.0613  0.2708  0.5110  1.4784  1.3111  1.6670  0.0000  0.0000
+6     con  srl_z  0.3009  0.0545  0.1941  0.4077  1.3511  1.2142  1.5034  0.0000  0.0000
+7     mot  srl_z  0.5222  0.0699  0.3852  0.6592  1.6857  1.4699  1.9333  0.0000  0.0000
+8     sui  srl_z  0.3562  0.1134  0.1339  0.5785  1.4279  1.1433  1.7834  0.0017  0.0017
+Edges with Holm p < .05 for moderation: 1 of 36
+   [56s]
+Model-implied symptom probabilities (mean age, male, non-Dutch):
+     SRL -1 SD  SRL +1 SD
+anh      0.271      0.677
+dep      0.105      0.516
+slp      0.237      0.610
+ene      0.346      0.732
+app      0.154      0.485
+glt      0.060      0.347
+con      0.087      0.379
+mot      0.044      0.310
+sui      0.012      0.128
+
+== C-orig: moderated Ising with the ORIGINAL SRL (continuous) ==
+                                 model    k            LL            AIC            BIC      max_grad  iter
+0               C-orig: both moderated  153 -90521.375773  181348.751546  182581.154345  1.080025e-12     9
+1    C-orig: activation moderated only  117 -90559.324692  181352.649384  182295.075054  9.712563e-10     7
+2  C-orig: interactions moderated only  144 -90758.717268  181805.434536  182965.343053  4.623812e-11     8
+3            C-orig: neither moderated  108 -93919.032680  188054.065360  188923.996747  3.997673e-10     7
+                     test       chisq  df             p
+0  interaction moderation   75.897838  36  1.142886e-04
+1   activation moderation  474.682991   9  1.508295e-96
+2   equal SRL slopes on h   29.522341   8  2.566562e-04
+SRL effect on activation (log-odds per SD; full model):
+  symptom        term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_orig_z  0.2691  0.0409  0.1888  0.3493  1.3087  1.2078  1.4181  0.0000  0.0000
+1     dep  srl_orig_z  0.3901  0.0586  0.2753  0.5049  1.4772  1.3170  1.6569  0.0000  0.0000
+2     slp  srl_orig_z  0.1485  0.0391  0.0719  0.2251  1.1601  1.0746  1.2524  0.0001  0.0003
+3     ene  srl_orig_z  0.2144  0.0329  0.1500  0.2789  1.2392  1.1618  1.3216  0.0000  0.0000
+4     app  srl_orig_z  0.2411  0.0473  0.1485  0.3337  1.2726  1.1600  1.3961  0.0000  0.0000
+5     glt  srl_orig_z  0.3379  0.0618  0.2168  0.4590  1.4020  1.2421  1.5825  0.0000  0.0000
+6     con  srl_orig_z  0.2748  0.0547  0.1676  0.3821  1.3163  1.1825  1.4653  0.0000  0.0000
+7     mot  srl_orig_z  0.4921  0.0705  0.3539  0.6303  1.6358  1.4246  1.8782  0.0000  0.0000
+8     sui  srl_orig_z  0.2912  0.1149  0.0660  0.5164  1.3381  1.0682  1.6761  0.0113  0.0113
+Edges with Holm p < .05 for moderation: 1 of 36
+   [79s]
+
+== B: non-overlapping SRL ==

@@ -1,0 +1,32 @@
+Revision analyses 2026-10-20 12:29
+Records in source dataset: 24780
+
+== E: item >= 2, revised-SRL median split ==
+                                  model   k            LL            AIC            BIC      max_grad  iter
+0               E split: both moderated  90 -49156.952145   98493.904291   99218.847114  1.775070e-09    10
+1    E split: activation moderated only  54 -49385.480897   98878.961795   99313.927488  6.100703e-11     9
+2  E split: interactions moderated only  81 -49893.557966   99949.115932  100601.564472  2.345682e-11     9
+3            E split: neither moderated  45 -50941.906292  101973.812584  102336.283996  9.086903e-11     8
+                     test        chisq  df              p
+0  interaction moderation   457.057504  36   2.165500e-74
+1   activation moderation  1473.211641   9  1.169234e-311
+
+== F: ethnicity ==
+                                   test       chisq  df             p
+0  ethnicity moderation of interactions  203.612221  36  2.789998e-25
+1         SRL x ethnicity on activation   71.470466   9  7.833854e-12
+  symptom            term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_x_nonDutch -0.2300  0.0647 -0.3567 -0.1032  0.7945  0.6999  0.9019  0.0004  0.0030
+1     dep  srl_x_nonDutch  0.1148  0.0682 -0.0189  0.2485  1.1217  0.9813  1.2821  0.0924  0.3695
+2     slp  srl_x_nonDutch -0.1967  0.0587 -0.3118 -0.0817  0.8214  0.7321  0.9216  0.0008  0.0056
+3     ene  srl_x_nonDutch  0.0745  0.0663 -0.0554  0.2044  1.0773  0.9461  1.2267  0.2609  0.5218
+4     app  srl_x_nonDutch -0.2339  0.0597 -0.3509 -0.1169  0.7914  0.7040  0.8897  0.0001  0.0008
+5     glt  srl_x_nonDutch -0.1202  0.0668 -0.2511  0.0106  0.8867  0.7779  1.0107  0.0717  0.3587
+6     con  srl_x_nonDutch -0.0095  0.0612 -0.1295  0.1105  0.9906  0.8786  1.1169  0.8771  0.8771
+7     mot  srl_x_nonDutch  0.1095  0.0707 -0.0290  0.2480  1.1157  0.9714  1.2814  0.1214  0.3695
+8     sui  srl_x_nonDutch -0.2068  0.0959 -0.3948 -0.0188  0.8132  0.6738  0.9813  0.0310  0.1863
+
+== G: Fig. 1 parameters ==
+RMS phi difference scenario B vs C (group 2): 0.0354
+
+Done in 36s

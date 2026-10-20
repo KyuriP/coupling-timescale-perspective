@@ -1,0 +1,4 @@
+test,restricted,full,chisq,df,p
+interaction moderation,D[hlt_z]: activation moderated only,D[hlt_z]: both moderated,66.09479298233055,36,0.0016320355985753082
+activation moderation,D[hlt_z]: interactions moderated only,D[hlt_z]: both moderated,45.97965239244513,9,6.074697220780429e-07
+equal SRL slopes on h,D[hlt_z]: common slope,D[hlt_z]: both moderated,9.489653137512505,8,0.30268582875725875

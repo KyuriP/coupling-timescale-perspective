@@ -1,0 +1,86 @@
+Revision analyses 2026-10-20 12:27
+Records in source dataset: 24780
+
+== D: domain ses_z alone ==
+   ses_z: using 23214 of 23270 participants with this score observed
+                                   model    k            LL            AIC            BIC      max_grad  iter
+0               D[ses_z]: both moderated  153 -92299.769674  184905.539347  186137.573503  7.322218e-10     8
+1    D[ses_z]: activation moderated only  117 -92348.680884  184931.361769  185873.505535  5.523488e-10     7
+2  D[ses_z]: interactions moderated only  144 -92372.120911  185032.241823  186191.803381  2.774669e-12     8
+3            D[ses_z]: neither moderated  108 -93693.322581  187602.645162  188472.316331  3.703375e-10     7
+                     test       chisq  df             p
+0  interaction moderation   97.822421  36  1.276051e-07
+1   activation moderation  144.702475   9  1.101277e-26
+2   equal SRL slopes on h   80.809119   8  3.359600e-14
+SRL effect on activation (log-odds per SD; full model):
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  ses_z  0.1630  0.0377  0.0892  0.2368  1.1771  1.0933  1.2672  0.0000  0.0001
+1     dep  ses_z  0.2481  0.0544  0.1415  0.3547  1.2816  1.1520  1.4258  0.0000  0.0000
+2     slp  ses_z -0.0801  0.0367 -0.1521 -0.0082  0.9230  0.8589  0.9919  0.0291  0.1454
+3     ene  ses_z -0.0408  0.0307 -0.1009  0.0193  0.9600  0.9040  1.0195  0.1832  0.2628
+4     app  ses_z  0.0783  0.0441 -0.0083  0.1648  1.0814  0.9918  1.1791  0.0762  0.2287
+5     glt  ses_z  0.1206  0.0582  0.0065  0.2347  1.1281  1.0065  1.2645  0.0383  0.1533
+6     con  ses_z  0.0775  0.0513 -0.0232  0.1781  1.0805  0.9771  1.1949  0.1314  0.2628
+7     mot  ses_z  0.3832  0.0658  0.2542  0.5123  1.4670  1.2894  1.6691  0.0000  0.0000
+8     sui  ses_z  0.3263  0.1104  0.1099  0.5426  1.3858  1.1162  1.7205  0.0031  0.0187
+Edges with Holm p < .05 for moderation:
+        edge   term     est     se      lo      hi    p  p_holm
+31  glt--mot  ses_z  0.2025  0.049  0.1064  0.2986  0.0  0.0013
+   [24s]
+
+== D: domain str_z alone ==
+   str_z: using 23262 of 23270 participants with this score observed
+                                   model    k            LL            AIC            BIC      max_grad  iter
+0               D[str_z]: both moderated  153 -90121.935047  180549.870095  181782.220285  1.164402e-12     9
+1    D[str_z]: activation moderated only  117 -90204.118633  180642.237267  181584.622706  9.752202e-10     7
+2  D[str_z]: interactions moderated only  144 -90592.170305  181472.340609  182632.199612  2.171721e-10     8
+3            D[str_z]: neither moderated  108 -93886.312737  187988.625473  188858.519725  3.959464e-10     7
+                     test       chisq  df              p
+0  interaction moderation  164.367172  36   2.554910e-18
+1   activation moderation  940.470515   9  1.175220e-196
+2   equal SRL slopes on h   24.634974   8   1.792030e-03
+SRL effect on activation (log-odds per SD; full model):
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  str_z  0.3806  0.0429  0.2965  0.4647  1.4632  1.3452  1.5916  0.0000  0.0000
+1     dep  str_z  0.4663  0.0613  0.3461  0.5864  1.5940  1.4136  1.7975  0.0000  0.0000
+2     slp  str_z  0.3013  0.0411  0.2208  0.3819  1.3516  1.2470  1.4650  0.0000  0.0000
+3     ene  str_z  0.4234  0.0342  0.3564  0.4904  1.5272  1.4282  1.6330  0.0000  0.0000
+4     app  str_z  0.2907  0.0487  0.1953  0.3861  1.3374  1.2157  1.4712  0.0000  0.0000
+5     glt  str_z  0.5468  0.0638  0.4218  0.6718  1.7277  1.5248  1.9577  0.0000  0.0000
+6     con  str_z  0.4735  0.0570  0.3618  0.5851  1.6055  1.4359  1.7952  0.0000  0.0000
+7     mot  str_z  0.5152  0.0728  0.3725  0.6579  1.6740  1.4514  1.9307  0.0000  0.0000
+8     sui  str_z  0.1902  0.1148 -0.0348  0.4153  1.2095  0.9658  1.5148  0.0976  0.0976
+Edges with Holm p < .05 for moderation:
+       edge   term     est      se      lo      hi       p  p_holm
+2  anh--ene  str_z -0.2009  0.0511 -0.3011 -0.1008  0.0001   0.003
+   [48s]
+
+== D: domain hlt_z alone ==
+   hlt_z: using 23269 of 23270 participants with this score observed
+                                   model    k            LL            AIC            BIC      max_grad  iter
+0               D[hlt_z]: both moderated  153 -93046.219893  186398.439787  187630.836011  3.737233e-11     8
+1    D[hlt_z]: activation moderated only  117 -93079.267290  186392.534580  187334.955221  5.644347e-10     7
+2  D[hlt_z]: interactions moderated only  144 -93069.209719  186426.419439  187586.321767  4.013740e-09     7
+3            D[hlt_z]: neither moderated  108 -93913.547016  188043.094033  188913.020779  3.997873e-10     7
+                     test      chisq  df             p
+0  interaction moderation  66.094793  36  1.632036e-03
+1   activation moderation  45.979652   9  6.074697e-07
+2   equal SRL slopes on h   9.489653   8  3.026858e-01
+SRL effect on activation (log-odds per SD; full model):
+  symptom   term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  hlt_z  0.0119  0.0363 -0.0592  0.0831  1.0120  0.9425  1.0866  0.7420  1.0000
+1     dep  hlt_z  0.0303  0.0517 -0.0710  0.1317  1.0308  0.9314  1.1408  0.5577  1.0000
+2     slp  hlt_z  0.1148  0.0325  0.0511  0.1785  1.1216  1.0524  1.1954  0.0004  0.0033
+3     ene  hlt_z  0.1131  0.0283  0.0576  0.1686  1.1198  1.0593  1.1837  0.0001  0.0006
+4     app  hlt_z  0.1172  0.0424  0.0342  0.2002  1.1243  1.0348  1.2217  0.0057  0.0396
+5     glt  hlt_z  0.0675  0.0542 -0.0386  0.1737  1.0699  0.9621  1.1897  0.2124  1.0000
+6     con  hlt_z  0.0455  0.0478 -0.0482  0.1391  1.0465  0.9530  1.1493  0.3410  1.0000
+7     mot  hlt_z  0.0364  0.0635 -0.0881  0.1609  1.0371  0.9157  1.1745  0.5667  1.0000
+8     sui  hlt_z  0.0489  0.1097 -0.1661  0.2640  1.0502  0.8470  1.3021  0.6556  1.0000
+Edges with Holm p < .05 for moderation:
+Empty DataFrame
+Columns: [edge, term, est, se, lo, hi, p, p_holm]
+Index: []
+   [70s]
+
+Done in 70s

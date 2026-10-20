@@ -1,0 +1,7 @@
+test,restricted,full,chisq,df,p
+activation moderation by ses_z given others,drop ses_z from h,D joint,94.84049087634776,9,1.731513313174484e-16
+activation moderation by str_z given others,drop str_z from h,D joint,895.7960440374154,9,4.980153171507401e-187
+activation moderation by hlt_z given others,drop hlt_z from h,D joint,64.94110886429553,9,1.4812806613748462e-10
+interaction moderation by ses_z given others,drop ses_z from J,D joint,94.51679941901239,36,3.778758628093969e-07
+interaction moderation by str_z given others,drop str_z from J,D joint,190.3417997288925,36,6.84847783454177e-23
+interaction moderation by hlt_z given others,drop hlt_z from J,D joint,47.29946950884187,36,0.098501506805402

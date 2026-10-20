@@ -1,0 +1,56 @@
+Revision analyses 2026-10-20 12:19
+Records in source dataset: 24780
+
+== C-orig: moderated Ising with the ORIGINAL SRL (continuous) ==
+                                 model    k            LL            AIC            BIC      max_grad  iter
+0               C-orig: both moderated  153 -90521.375773  181348.751546  182581.154345  1.080025e-12     9
+1    C-orig: activation moderated only  117 -90559.324692  181352.649384  182295.075054  9.712563e-10     7
+2  C-orig: interactions moderated only  144 -90758.717268  181805.434536  182965.343053  4.623812e-11     8
+3            C-orig: neither moderated  108 -93919.032680  188054.065360  188923.996747  3.997673e-10     7
+                     test       chisq  df             p
+0  interaction moderation   75.897838  36  1.142886e-04
+1   activation moderation  474.682991   9  1.508295e-96
+2   equal SRL slopes on h   29.522341   8  2.566562e-04
+SRL effect on activation (log-odds per SD; full model):
+  symptom        term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_orig_z  0.2691  0.0409  0.1888  0.3493  1.3087  1.2078  1.4181  0.0000  0.0000
+1     dep  srl_orig_z  0.3901  0.0586  0.2753  0.5049  1.4772  1.3170  1.6569  0.0000  0.0000
+2     slp  srl_orig_z  0.1485  0.0391  0.0719  0.2251  1.1601  1.0746  1.2524  0.0001  0.0003
+3     ene  srl_orig_z  0.2144  0.0329  0.1500  0.2789  1.2392  1.1618  1.3216  0.0000  0.0000
+4     app  srl_orig_z  0.2411  0.0473  0.1485  0.3337  1.2726  1.1600  1.3961  0.0000  0.0000
+5     glt  srl_orig_z  0.3379  0.0618  0.2168  0.4590  1.4020  1.2421  1.5825  0.0000  0.0000
+6     con  srl_orig_z  0.2748  0.0547  0.1676  0.3821  1.3163  1.1825  1.4653  0.0000  0.0000
+7     mot  srl_orig_z  0.4921  0.0705  0.3539  0.6303  1.6358  1.4246  1.8782  0.0000  0.0000
+8     sui  srl_orig_z  0.2912  0.1149  0.0660  0.5164  1.3381  1.0682  1.6761  0.0113  0.0113
+Edges with Holm p < .05 for moderation:
+        edge        term     est      se      lo      hi       p  p_holm
+31  glt--mot  srl_orig_z  0.1799  0.0508  0.0803  0.2794  0.0004  0.0144
+   [24s]
+
+== B: non-overlapping SRL ==
+                            model    k            LL            AIC            BIC      max_grad  iter
+0               B: both moderated  153 -92902.982172  186111.964344  187344.367143  1.573852e-12     9
+1    B: activation moderated only  117 -92942.267257  186118.534515  187060.960185  5.548029e-10     7
+2  B: interactions moderated only  144 -92969.144843  186226.289686  187386.198202  2.887015e-09     7
+3            B: neither moderated  108 -93919.032680  188054.065360  188923.996747  3.997673e-10     7
+                     test       chisq  df             p
+0  interaction moderation   78.570171  36  5.283079e-05
+1   activation moderation  132.325342   9  3.941378e-24
+2   equal SRL slopes on h   32.732988   8  6.879708e-05
+SRL effect on activation (log-odds per SD; full model):
+  symptom       term     est      se      lo      hi      OR   OR_lo   OR_hi       p  p_holm
+0     anh  srl_nov_z  0.1158  0.0357  0.0458  0.1858  1.1228  1.0469  1.2042  0.0012  0.0071
+1     dep  srl_nov_z  0.1592  0.0518  0.0577  0.2607  1.1726  1.0594  1.2979  0.0021  0.0105
+2     slp  srl_nov_z -0.0174  0.0341 -0.0842  0.0494  0.9828  0.9193  1.0506  0.6099  0.6099
+3     ene  srl_nov_z  0.0479  0.0288 -0.0085  0.1043  1.0490  0.9915  1.1099  0.0963  0.1925
+4     app  srl_nov_z  0.1786  0.0414  0.0974  0.2598  1.1955  1.1023  1.2967  0.0000  0.0001
+5     glt  srl_nov_z  0.1200  0.0546  0.0129  0.2270  1.1275  1.0130  1.2548  0.0280  0.1122
+6     con  srl_nov_z  0.1648  0.0480  0.0708  0.2588  1.1792  1.0733  1.2954  0.0006  0.0041
+7     mot  srl_nov_z  0.2713  0.0625  0.1489  0.3938  1.3117  1.1605  1.4825  0.0000  0.0001
+8     sui  srl_nov_z  0.2279  0.1054  0.0212  0.4345  1.2559  1.0214  1.5442  0.0307  0.1122
+Edges with Holm p < .05 for moderation:
+        edge       term     est      se      lo      hi       p  p_holm
+31  glt--mot  srl_nov_z  0.1617  0.0474  0.0689  0.2546  0.0006  0.0231
+   [47s]
+
+== D: domain ses_z alone ==
