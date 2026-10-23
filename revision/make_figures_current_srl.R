@@ -3,11 +3,11 @@
 #
 # Re-creates the manuscript figures with the current Slow Risk Load and
 # analytic sample (n = 23,270), using the existing figure scripts unchanged
-# apart from their input/output paths (and axis labels where the plotted
-# quantity changed).
+# apart from their input/output paths. Fig. 4 has its own script because it
+# shows activation and interaction effects together.
 #
 #   Fig. 3   descriptives          archive/figure_scripts/legacy/fig_descriptives.R
-#   Fig. 4   SRL effects on h      fig_scripts/revised/04_activation_differences.R
+#   Fig. 4   SRL effects on h, J   fig_scripts/revised/04_srl_activation_effects.R
 #   Supp S1  distributions         archive/figure_pipeline_legacy.R (section 14)
 #   Supp S2  NCT                   fig_scripts/revised/03_nct_comparison.R
 #   Supp S3  multigroup activation fig_scripts/revised/A1_activation_sensitivity.R
@@ -78,26 +78,10 @@ ggsave("figs/revised/supp_distribution_hist_density_current.pdf", supp_dist2,
        width = 7, height = 7.5, units = "in")
 
 # ------------------------------------------------------------------------------
-# Fig. 4: SRL effects on symptom activation (moderated Ising model)
+# Fig. 4: SRL effects on activation and interactions (moderated Ising model)
 # ------------------------------------------------------------------------------
 
-run_script(
-  "fig_scripts/revised/04_activation_differences.R",
-  list(
-    c('"results",\\s*"network_invariance_exact",\\s*"slow_risk",\\s*"exact_multigroup_ising",\\s*"activation_differences_free_J_free_h_with_95CI\\.csv"',
-      '"results", "revision_analyses", "figure_srl_activation_effects.csv"'),
-    c("Higher in High Slow Risk", "Higher activation at higher SRL"),
-    c("Higher in Low Slow Risk", "Lower activation at higher SRL"),
-    c("Activation difference \\(High minus Low Slow Risk\\)",
-      "Change in activation per SD of Slow Risk Load (log-odds)"),
-    c("results/figure_data/figure_03_activation_differences\\.csv",
-      "results/figure_data/figure_04_srl_activation_effects.csv"),
-    c('filename = "figure_03_activation_differences"',
-      'filename = "figure_04_srl_activation_effects"'),
-    c("x_min <- min\\(activation\\$ci_95_lower\\) - 0\\.04",
-      "x_min <- min(0, min(activation$ci_95_lower)) - 0.04")
-  )
-)
+source("fig_scripts/revised/04_srl_activation_effects.R")
 
 # ------------------------------------------------------------------------------
 # Supp. Fig. S3: multigroup activation differences under two specifications
@@ -136,7 +120,7 @@ run_script(
 
 nct_dir <- file.path("results", "revision_analyses", "nct")
 if (file.exists(file.path(nct_dir, "nct_summary.csv"))) {
-  # Summary aliases retained for compatibility with earlier figure templates.
+  # column names that 03_nct_comparison.R looks for
   nct_sum <- read.csv(file.path(nct_dir, "nct_summary.csv"))
   nct_sum$M <- nct_sum$network_structure_statistic_M
   nct_sum$S <- nct_sum$global_strength_difference_S

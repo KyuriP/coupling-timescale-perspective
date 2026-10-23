@@ -71,7 +71,7 @@ The full NCT and MGM runs are slow. Setting `QUICK_TEST <- TRUE` in the MGM scri
 | `results/revision_analyses/nct/` | Current NCT summaries and network matrices |
 | `results/figure_data/` | Aggregate data used by figure scripts |
 | `figs/revised/*current*` | Current descriptive and supplementary figures |
-| `figs/revised/figure_04_srl_activation_effects.*` | Continuous SRL effects on activation |
+| `figs/revised/figure_04_srl_activation_effects.*` | SRL effects on activation and interactions |
 | `R/` | Original SRL workflow and shared R setup/helpers |
 | `fig_scripts/revised/` | Plotting templates reused by the current wrapper |
 | `archive/` | Earlier and exploratory code/aggregate outputs; not the current analysis entry point |

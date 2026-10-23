@@ -641,12 +641,10 @@ def main(data, outdir, sections):
             say(mg["table"].to_string()); say(mg["lrt"][["test", "chisq", "df", "p"]].to_string())
 
     if want("G"):
-        # Two mechanisms that give the same phi network.
-        # Group A and B share the fitted interactions J0; activation is h0 -/+ beta
-        # at SRL -1/+1 SD, with covariates set to zero and SRL moderation of J
-        # switched off. Mechanism 1 keeps activation at the
-        # Group A values and solves for interactions that reproduce Group B's
-        # observed (phi) association network.
+        # Two mechanisms that give the same phi network. Groups A and B share
+        # the fitted interactions J0, with activation h0 -/+ beta (SRL at -1/+1 SD,
+        # covariates at zero, no SRL moderation of J). Mechanism 1 keeps Group A's
+        # activation and solves for the interactions that reproduce Group B's phi.
         say("\n== G: Fig. 1 parameters ==")
         full = main_full()
         sp = SPACES[9]; Bh, BJ = full.map.split(full.map.M @ full.theta.to_numpy())
@@ -668,9 +666,9 @@ def main(data, outdir, sections):
         for nm, M_ in [("phi_groupA", phiA), ("phi_groupB", phiB), ("phi_groupB_mechanism1", phiB1),
                        ("J_shared", sym(J0)), ("J_groupB_mechanism1", sym(JB))]:
             pd.DataFrame(M_, index=SYMPTOMS, columns=SYMPTOMS).to_csv(os.path.join(outdir, f"G_{nm}.csv"))
-        # Exploratory five-symptom schematic: sleep, fatigue, low mood,
-        # guilt, concentration, with the fitted interactions on five edges and the
-        # fitted activation shifts at -/+ 2 SD of SRL.
+        # Five-symptom version (Supplementary Table S11): sleep, energy, mood,
+        # guilt, concentration, fitted interactions on five edges, activation
+        # at -/+ 2 SD of SRL.
         sel = [SYMPTOMS.index(x) for x in ["slp", "ene", "dep", "glt", "con"]]
         sp5 = SPACES.setdefault(5, Space(5)); J0m = sym(J0)
         chain = {(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)}
