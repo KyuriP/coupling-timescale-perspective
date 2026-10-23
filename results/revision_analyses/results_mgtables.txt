@@ -1,0 +1,30 @@
+Revision analyses 2026-10-20 15:36
+Records in source dataset: 24780
+
+== mgtables: multigroup activation estimates ==
+                   model symptom  h_low  h_high   diff     se     lo     hi      p  p_holm
+0   fully group-specific     anh -2.208  -1.868  0.339  0.067  0.209  0.470  0.000   0.000
+1   fully group-specific     dep -3.571  -3.110  0.461  0.097  0.270  0.651  0.000   0.000
+2   fully group-specific     slp -1.748  -1.892 -0.144  0.063 -0.267 -0.021  0.022   0.108
+3   fully group-specific     ene -1.264  -1.230  0.033  0.053 -0.070  0.137  0.527   0.527
+4   fully group-specific     app -2.587  -2.439  0.148  0.077 -0.003  0.299  0.054   0.187
+5   fully group-specific     glt -3.431  -3.166  0.266  0.101  0.067  0.464  0.009   0.052
+6   fully group-specific     con -3.014  -2.884  0.131  0.090 -0.046  0.307  0.146   0.292
+7   fully group-specific     mot -4.004  -3.481  0.523  0.121  0.286  0.761  0.000   0.000
+8   fully group-specific     sui -5.305  -4.884  0.421  0.212  0.006  0.836  0.047   0.187
+9    common interactions     anh -2.200  -1.880  0.320  0.035  0.251  0.390  0.000   0.000
+10   common interactions     dep -3.634  -3.053  0.582  0.038  0.506  0.657  0.000   0.000
+11   common interactions     slp -1.843  -1.751  0.092  0.033  0.026  0.158  0.006   0.012
+12   common interactions     ene -1.267  -1.221  0.046  0.036 -0.024  0.117  0.196   0.196
+13   common interactions     app -2.620  -2.413  0.207  0.034  0.140  0.273  0.000   0.000
+14   common interactions     glt -3.426  -3.191  0.235  0.041  0.154  0.316  0.000   0.000
+15   common interactions     con -3.057  -2.846  0.211  0.038  0.137  0.285  0.000   0.000
+16   common interactions     mot -4.097  -3.426  0.672  0.045  0.583  0.760  0.000   0.000
+17   common interactions     sui -5.361  -4.876  0.485  0.070  0.348  0.621  0.000   0.000
+                                model   k            LL  iterations  max_abs_gradient  min_eigenvalue_information
+0               split: both moderated  90 -93504.174141           9      1.380407e-11                    9.225494
+1    split: activation moderated only  54 -93555.170761           7      1.387279e-10                   56.704300
+2  split: interactions moderated only  81 -93568.952057           7      6.792149e-10                   11.183812
+3            split: neither moderated  45 -95186.210622           7      1.964173e-10                   58.478308
+
+Done in 16s

@@ -1,0 +1,9 @@
+Revision analyses 2026-10-20 15:51
+Records in source dataset: 24780
+
+== G: Fig. 1 parameters ==
+max |phi| difference between mechanisms for Group B: 0.000057
+interaction changes needed under mechanism 1: 11 of 36 with |dJ| > 0.1
+five-symptom schematic: max |phi| difference between mechanisms 1.72e-09
+
+Done in 7s

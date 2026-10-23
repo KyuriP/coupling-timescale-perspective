@@ -1,0 +1,10 @@
+Revision analyses 2026-10-20 15:36
+Records in source dataset: 24780
+
+== export: data/network_sample_ordinal.csv (23270 rows) ==
+
+== G: Fig. 1 parameters ==
+max |phi| difference between mechanisms for Group B: 0.000057
+interaction changes needed under mechanism 1: 11 of 36 with |dJ| > 0.1
+
+Done in 7s

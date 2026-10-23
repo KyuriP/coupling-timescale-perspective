@@ -1,0 +1,3 @@
+test,restricted,full,chisq,df,p
+interaction moderation,split: activation moderated only,split: both moderated,101.99324125784915,36,3.1610458313987983e-08
+activation moderation,split: interactions moderated only,split: both moderated,129.55583246104652,9,1.463491526498773e-23

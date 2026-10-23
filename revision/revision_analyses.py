@@ -1,32 +1,54 @@
-"""
-Revision analyses for "Rethinking Group Differences in Psychopathology Networks:
-A Slow-Fast Perspective on Context and Symptom Activation".
-
-Python port of revision_analyses.R (same estimator, same sections), written to
-run where R is unavailable. Variable names and coding follow
-R/01_prepare_analysis_data.R in the project repository.
-
-Sections
-  C0  Original SRL, median split: must reproduce manuscript Table 1 (check)
-  A   Revised SRL: adversity coding of work variables, no healthcare cultural
-      distance, winsorized activity/pack-years, minimum-completion rule
-  B   Non-overlapping SRL (drops indicators that may reflect depression)
-  C   Exact moderated Ising model, continuous SRL on activation (h) and
-      interactions (J); LRTs, AIC/BIC, equal-slope test, implied probabilities
-  D   Domain-specific moderators (separately and jointly)
-  E   Symptom presence defined as item >= 2
-  F   Ethnicity: moderation of J, SRL x ethnicity on h, models within groups
-  G   Parameters for a redrawn Fig. 1
-
-Model:  h_i(n) = Wh[n] . Bh[:, i],  J_ij(n) = WJ[n] . BJ[:, ij],
-exact likelihood over all 2^9 = 512 symptom states, Newton-Raphson with the
-exact Hessian (observed = expected information for this exponential family).
-
-Usage:  python3 revision_analyses.py [--selftest] [--data data/helius.sav] [--out DIR]
-"""
-import argparse, itertools, json, os, sys, time, warnings
+# ==============================================================================
+# revision/revision_analyses.py
+#
+# Moderated Ising analyses for the revision.
+#
+# Instead of splitting Slow Risk Load (SRL) at the median, SRL enters as a
+# continuous moderator of both the activation parameters h and the pairwise
+# interactions J of the {0,1} Ising model:
+#
+#   h_i(n)  = Wh[n, ] . Bh[, i]
+#   J_ij(n) = WJ[n, ] . BJ[, ij]
+#
+# With p = 9 the partition function is computed exactly over all 2^9 = 512
+# symptom configurations for every participant. Estimation is by
+# Newton-Raphson with the exact Hessian (for this exponential family the
+# observed and expected information coincide). With a binary group dummy in
+# Wh and WJ the model is identical to the fully free two-group model of
+# R/04_network_invariance_exact.R, which is used as a check (section C0).
+#
+# Sections
+#   C0     original SRL, median split -- checks the original manuscript Table 1
+#   A      revised SRL and analytic sample
+#   C0b    revised SRL, median split
+#   C      continuous SRL (main analysis)
+#   Corig  continuous original SRL
+#   B      SRL without indicators that overlap with depressive symptoms
+#   Dses / Dstr / Dhlt / Djoint   domain scores as moderators
+#   E / Esplit   symptom presence defined as item >= 2
+#   F / FDutch / FnonDutch        ethnicity
+#   G      two-mechanism example for Fig. 1 (Supplementary Table S11)
+#   figdata  aggregated summaries for the descriptive figures
+#   mgtables multigroup activation estimates and diagnostics (median split)
+#   export   participant-level input for MGM and NCT (local data/ only)
+#   rexport  inputs for the R figure scripts (requires section C results)
+#
+# Data preparation follows R/01_prepare_analysis_data.R. The revised SRL
+# differs from the original in four ways: work situation and labour
+# participation are coded as binary adversity indicators, healthcare cultural
+# distance is dropped, physical activity and pack-years are winsorized at the
+# 1st/99th percentile, and a domain score needs at least half of its
+# indicators (SRL at least two of three domains).
+#
+# Run from the repository root:
+#
+#   python3 revision/revision_analyses.py --sections all
+#   python3 revision/revision_analyses.py --selftest     # simulation check
+#
+# Requires numpy, scipy, pandas, pyreadstat.
+# ==============================================================================
+import argparse, itertools, os, time
 import numpy as np
-warnings.filterwarnings("ignore", category=RuntimeWarning)   # nanmean of all-NaN rows
 import pandas as pd
 from scipy import stats, optimize
 from scipy.special import logsumexp
@@ -66,7 +88,7 @@ def pair_products(X, pairs):
 
 
 class Map:
-    """theta -> phi = c(vec(Bh), vec(BJ)) in R's column-major order."""
+    """Maps free parameters theta to phi = (vec(Bh), vec(BJ)), column-major."""
     def __init__(self, h_names, J_names, p, m, h_common=()):
         self.qh, self.qJ, self.p, self.m = len(h_names), len(J_names), p, m
         nphi = self.qh * p + self.qJ * m
@@ -131,11 +153,20 @@ class Fit:
 def fit_ising(X, Wh, WJ, h_names, J_names, h_common=(), w=None, label="",
               tol=1e-8, maxit=100):
     X = np.asarray(X, float); n, p = X.shape
-    if np.isnan(X).any() or np.isnan(Wh).any() or np.isnan(WJ).any():
-        raise ValueError(f"[{label}] missing values in symptoms or design matrices")
+    Wh, WJ = np.asarray(Wh, float), np.asarray(WJ, float)
+    if n == 0 or p < 2 or maxit < 1:
+        raise ValueError(f"[{label}] need observations, at least two symptoms, and maxit >= 1")
+    if not all(np.isfinite(a).all() for a in (X, Wh, WJ)):
+        raise ValueError(f"[{label}] non-finite values in symptoms or design matrices")
+    if not np.isin(X, [0, 1]).all():
+        raise ValueError(f"[{label}] Ising symptoms must be coded 0 or 1")
+    if Wh.shape != (n, len(h_names)) or WJ.shape != (n, len(J_names)):
+        raise ValueError(f"[{label}] design dimensions do not match observations and names")
     sp = SPACES.setdefault(p, Space(p))
     X2 = np.hstack([X, pair_products(X, sp.pairs)])
-    w = np.ones(n) if w is None else w
+    w = np.ones(n) if w is None else np.asarray(w, float)
+    if w.shape != (n,) or not np.isfinite(w).all() or (w < 0).any() or w.sum() <= 0:
+        raise ValueError(f"[{label}] weights must be finite, nonnegative, and sum to > 0")
     mp = Map(h_names, J_names, p, sp.m, h_common)
     theta = np.zeros(len(mp.labels))
     pm = np.clip(X.mean(0), 1e-3, 1 - 1e-3)
@@ -143,6 +174,7 @@ def fit_ising(X, Wh, WJ, h_names, J_names, h_common=(), w=None, label="",
         lab = f"h{i+1}:(Intercept)"
         if lab in mp.labels: theta[mp.labels.index(lab)] = np.log(pm[i] / (1 - pm[i]))
     ev = ising_eval(theta, X2, Wh, WJ, mp, sp, w, True)
+    converged = False
     for it in range(1, maxit + 1):
         try: step = np.linalg.solve(-ev["H"], ev["grad"])
         except np.linalg.LinAlgError: step = np.linalg.pinv(-ev["H"]) @ ev["grad"]
@@ -151,18 +183,27 @@ def fit_ising(X, Wh, WJ, h_names, J_names, h_common=(), w=None, label="",
             new = ising_eval(theta + s * step, X2, Wh, WJ, mp, sp, w)
             if np.isfinite(new["ll"]) and new["ll"] >= ev["ll"] - 1e-10: break
             s /= 2
-            if s < 1e-8: break
+            if s < 1e-8:
+                raise RuntimeError(f"[{label}] Newton line search failed")
         theta = theta + s * step
         dec = s * float(step @ ev["grad"])
         ev = ising_eval(theta, X2, Wh, WJ, mp, sp, w, True)
-        if abs(dec) < tol and np.max(np.abs(ev["grad"])) < 1e-4: break
-    try: V = np.linalg.inv(-ev["H"])
-    except np.linalg.LinAlgError: V = np.linalg.pinv(-ev["H"])
+        if abs(dec) < tol and np.max(np.abs(ev["grad"])) < 1e-4:
+            converged = True
+            break
+    if not converged:
+        raise RuntimeError(f"[{label}] did not converge in {maxit} iterations")
+    info_min_eig = float(np.linalg.eigvalsh(-ev["H"]).min())
+    if not np.isfinite(info_min_eig) or info_min_eig <= 0:
+        raise RuntimeError(f"[{label}] information matrix is not positive definite")
+    V = np.linalg.inv(-ev["H"])
+    if not np.isfinite(V).all() or (np.diag(V) <= 0).any():
+        raise RuntimeError(f"[{label}] invalid parameter covariance matrix")
     f = Fit()
-    f.theta = pd.Series(theta, index=mp.labels); f.se = pd.Series(np.sqrt(np.clip(np.diag(V), 0, None)), index=mp.labels)
+    f.theta = pd.Series(theta, index=mp.labels); f.se = pd.Series(np.sqrt(np.diag(V)), index=mp.labels)
     f.ll = ev["ll"]; f.k = len(theta); f.n = w.sum()
     f.AIC = -2 * f.ll + 2 * f.k; f.BIC = -2 * f.ll + np.log(f.n) * f.k
-    f.max_grad = float(np.max(np.abs(ev["grad"]))); f.iter = it; f.label = label
+    f.max_grad = float(np.max(np.abs(ev["grad"]))); f.iter = it; f.label = label; f.info_min_eig = info_min_eig
     f.p, f.m, f.pairs, f.map = p, sp.m, sp.pairs, mp
     f.h_names, f.J_names = list(h_names), list(J_names)
     return f
@@ -239,18 +280,18 @@ def implied_marginals(f, wh, wj):
 
 
 # ---------------------------------------------------------------------------
-# 2. Self-test (same checks as the R version)
+# 2. Simulation check of the estimator
 # ---------------------------------------------------------------------------
 def selftest():
     rng = np.random.default_rng(20261020)
-    p = 9; sp = SPACES.setdefault(p, Space(p)); m = sp.m; n = 6000
+    p = 9; sp = SPACES.setdefault(p, Space(p)); m = sp.m; n = 20000
     z = rng.normal(size=n); g = rng.binomial(1, .5, n).astype(float)
     Bh = np.vstack([rng.normal(-1.5, .5, p), rng.uniform(.1, .5, p), rng.normal(0, .2, p)])
     BJ = np.vstack([rng.normal(.4, .4, m), np.r_[np.zeros(m - 3), .5, -.4, .3]])
     Wh = np.column_stack([np.ones(n), z, g]); WJ = np.column_stack([np.ones(n), z])
     eta = np.hstack([Wh @ Bh, WJ @ BJ]); E = eta @ sp.Tst.T
     P = np.exp(E - logsumexp(E, axis=1)[:, None])
-    st = np.array([rng.choice(len(sp.Tst), p=r) for r in P])
+    st = (P.cumsum(1) < rng.random(n)[:, None]).sum(1)
     X = sp.Tst[st, :p]; df = pd.DataFrame(dict(z=z, g=g))
     hn, jn = ["(Intercept)", "z", "g"], ["(Intercept)", "z"]
     mp = Map(hn, jn, p, m); X2 = np.hstack([X, pair_products(X, sp.pairs)])
@@ -259,17 +300,20 @@ def selftest():
     idx = rng.choice(len(th), 5, replace=False); eps = 1e-5
     fd = [(ising_eval(th + eps * np.eye(len(th))[j], X2, Wh, WJ, mp, sp, w)["ll"] -
            ising_eval(th - eps * np.eye(len(th))[j], X2, Wh, WJ, mp, sp, w)["ll"]) / (2 * eps) for j in idx]
-    print("Self-test 1: max |grad - finite diff| =", np.max(np.abs(ev["grad"][idx] - fd)))
+    print("Check 1: max |grad - finite diff| =", np.max(np.abs(ev["grad"][idx] - fd)))
     e0 = np.eye(len(th))[idx[0]] * eps
     fdH = (ising_eval(th + e0, X2, Wh, WJ, mp, sp, w)["grad"] - ising_eval(th - e0, X2, Wh, WJ, mp, sp, w)["grad"]) / (2 * eps)
-    print("              max |Hessian col - finite diff| =", np.max(np.abs(ev["H"][:, idx[0]] - fdH)))
+    print("         max |Hessian col - finite diff| =", np.max(np.abs(ev["H"][:, idx[0]] - fdH)))
+    np.testing.assert_allclose(ev["grad"][idx], fd, rtol=1e-6, atol=1e-4)
+    np.testing.assert_allclose(ev["H"][:, idx[0]], fdH, rtol=1e-6, atol=1e-4)
     f = fit_terms(X, df, ["z", "g"], ["z"], "sim")
     hz = h_coef(f, "z")
-    print(f"Self-test 2: h slope corr = {np.corrcoef(Bh[1], hz.est)[0,1]:.3f}, "
+    print(f"Check 2: mean |z| of h-slope errors = {np.mean(np.abs((hz.est - Bh[1]) / hz.se)):.2f}, "
           f"coverage = {np.mean((Bh[1] >= hz.lo) & (Bh[1] <= hz.hi)):.2f}")
     fg = fit_terms(X, df, ["g"], ["g"], "dummy")
     f0 = fit_terms(X[g == 0], df[g == 0], [], [], "g0"); f1 = fit_terms(X[g == 1], df[g == 1], [], [], "g1")
-    print(f"Self-test 3: LL dummy {fg.ll:.4f} vs g0+g1 {f0.ll + f1.ll:.4f}")
+    print(f"Check 3: LL dummy {fg.ll:.4f} vs g0+g1 {f0.ll + f1.ll:.4f}")
+    np.testing.assert_allclose(fg.ll, f0.ll + f1.ll, rtol=0, atol=1e-5)
     fm = four_models(X, df, "z", cov_h=["g"], tag="sim: ")
     print(fm["table"].to_string()); print(fm["lrt"].to_string())
 
@@ -287,7 +331,9 @@ def winsor(x, lo=.01, hi=.99):
 
 def row_mean_min(Z, min_obs):
     nobs = np.sum(~np.isnan(Z), axis=1)
-    mu = np.nanmean(Z, axis=1)
+    # rows with nothing observed stay NaN
+    mu = np.divide(np.nansum(Z, axis=1), nobs,
+                   out=np.full(len(nobs), np.nan), where=nobs > 0)
     mu[nobs < min_obs] = np.nan
     return mu
 
@@ -320,7 +366,7 @@ def prepare(raw):
     out["PHQsum"] = r[PHQSUM]
     for s, v in PHQ_VARS.items(): out[s] = r[v]
 
-    # ---- original SRL, exactly as R/01_prepare_analysis_data.R ----
+    # ---- original SRL (as in R/01_prepare_analysis_data.R) ----
     o = dict(inc=r["H1_InkHhMoeite"], work=r["H1_WerkSit"], edu=r["H1_Opleid"], arb=r["H1_Arbeidsparticipatie"],
              occ=r["H1_BeroepsNiveau"], pcs=r["H1_PCS12"], act=r["H1_Squash_totmwk"], smk=r["H1_PackYears"],
              alc=r["H1_AlcoholConsumption"], lit=r["H1_SBSQ_meanscore"], sup=r["H1_SSQT"],
@@ -328,10 +374,10 @@ def prepare(raw):
              lang=lang.where(~(dutch & lang.isna()), 0), cult=cult.where(~(dutch & cult.isna()), 0))
     z = {k: zscore(v.to_numpy(float)) for k, v in o.items()}
     for k in ["edu", "occ", "pcs", "act", "lit", "sup"]: z[k] = -z[k]
-    ses = np.nanmean(np.column_stack([z[k] for k in ["inc", "work", "arb", "edu", "occ", "lit", "sup"]]), 1)
-    stv = np.nanmean(np.column_stack([z[k] for k in ["dis", "lang", "cult", "sw", "sh"]]), 1)
-    hlt = np.nanmean(np.column_stack([z[k] for k in ["pcs", "act", "smk", "alc"]]), 1)
-    out["srl_orig"] = np.nanmean(np.column_stack([ses, stv, hlt]), 1)
+    ses = row_mean_min(np.column_stack([z[k] for k in ["inc", "work", "arb", "edu", "occ", "lit", "sup"]]), 1)
+    stv = row_mean_min(np.column_stack([z[k] for k in ["dis", "lang", "cult", "sw", "sh"]]), 1)
+    hlt = row_mean_min(np.column_stack([z[k] for k in ["pcs", "act", "smk", "alc"]]), 1)
+    out["srl_orig"] = row_mean_min(np.column_stack([ses, stv, hlt]), 1)
 
     # ---- revised SRL ----
     ws = r["H1_WerkSit"]; ap = r["H1_Arbeidsparticipatie"]
@@ -366,7 +412,14 @@ def prepare(raw):
 # 4. Main
 # ---------------------------------------------------------------------------
 def main(data, outdir, sections):
-    want = lambda x: (sections == "all") or (x in sections.split(","))
+    valid = {"C0", "A", "C0b", "C", "Corig", "B", "Dses", "Dstr", "Dhlt", "Djoint",
+             "E", "Esplit", "F", "FDutch", "FnonDutch", "G", "export", "figdata", "mgtables", "rexport"}
+    requested = valid if sections == "all" else {s.strip() for s in sections.split(",")}
+    if requested - valid:
+        raise ValueError(f"Unknown sections: {sorted(requested - valid)}")
+    want = requested.__contains__
+    if want("rexport") and not want("C") and not os.path.isfile(os.path.join(outdir, "C_srl_h.csv")):
+        raise FileNotFoundError("rexport requires C_srl_h.csv; run --sections C,rexport first")
     os.makedirs(outdir, exist_ok=True)
     log = open(os.path.join(outdir, f"results_{sections.replace(',', '-')}.txt"), "w")
     def say(*a):
@@ -378,7 +431,6 @@ def main(data, outdir, sections):
     d, inds = prepare(raw)
     items = d[SYMPTOMS].to_numpy(float)
     complete = ~np.isnan(items).any(1)
-    res = {}
 
     # ---- C0: original SRL, replicating Table 1 ----
     s_desc = d["srl_orig"].notna() & d["PHQsum"].notna()
@@ -416,8 +468,6 @@ def main(data, outdir, sections):
             ct = pd.crosstab(net[v] > d.loc[k1, v].median(), net.srl_orig > med_o)
             say(f"   median-split agreement {v} vs original: {np.trace(ct.values) / ct.values.sum():.3f}")
     COV_H = ["age_z", "female", "nonDutch"]
-    if os.environ.get("DEBUG_EXPORT"):
-        pd.concat([pd.DataFrame(X1, columns=SYMPTOMS), net[COV_H + ["srl_z"]]], axis=1).to_csv(os.environ["DEBUG_EXPORT"], index=False)
 
     def run_mod(X, mod, tag, file):
         ok = net[mod].notna().to_numpy()
@@ -434,12 +484,74 @@ def main(data, outdir, sections):
         say(f"   [{time.time() - t0:.0f}s]")
         return fm
 
+    if want("export"):
+        # Analytic sample with ordinal items for revision/mgm_ordinal_check.R.
+        # Participant-level data: written to data/, which is not tracked by git.
+        ex = net[SYMPTOMS].astype(int).copy()
+        for v in ["srl_z", "srl_nov_z", "age_z"]: ex[v] = net[v]
+        ex["female"] = net["female"].astype(int); ex["nonDutch"] = net["nonDutch"].astype(int)
+        ex["srl_high"] = (net["srl"] > d.loc[k1, "srl"].median()).astype(int)
+        ex.to_csv(os.path.join("data", "network_sample_ordinal.csv"), index=False)
+        say(f"\n== export: data/network_sample_ordinal.csv ({len(ex)} rows) ==")
+
     gr = (net["srl"] > d.loc[k1, "srl"].median()).astype(float).to_numpy()
+    if want("figdata"):
+        # Aggregated summaries for the descriptive figures (no participant-level values).
+        fd_dir = os.path.join("results", "figure_data"); os.makedirs(fd_dir, exist_ok=True)
+        grp = pd.DataFrame({
+            "Slow Risk Load": np.where(gr == 1, "High Slow Risk", "Low Slow Risk"),
+            "Ethnicity": np.where(net["nonDutch"] == 1, "Non-Dutch", "Dutch"),
+            "Age group": np.where(net["age"] >= net["age"].median(), "Older", "Younger")})
+        z99 = stats.norm.ppf(0.995); rows_phq, rows_box = [], []
+        for gt in grp.columns:
+            for g in sorted(grp[gt].unique()):
+                s_ = (grp[gt] == g).to_numpy()
+                y = net.loc[s_, "PHQsum"].to_numpy(float); m_ = y.mean(); se = y.std(ddof=1) / np.sqrt(len(y))
+                rows_phq.append(dict(group_type=gt, group=g, n=len(y), mean=m_, lo=m_ - z99 * se, hi=m_ + z99 * se))
+                x = net.loc[s_, "srl_z"].to_numpy(float); q1, med, q3 = np.quantile(x, [.25, .5, .75]); iqr = q3 - q1
+                rows_box.append(dict(group_type=gt, group=g, n=len(x), q1=q1, median=med, q3=q3,
+                                     whisker_lo=x[x >= q1 - 1.5 * iqr].min(), whisker_hi=x[x <= q3 + 1.5 * iqr].max()))
+        pd.DataFrame(rows_phq).to_csv(os.path.join(fd_dir, "figure_03_descriptives_phq.csv"), index=False)
+        pd.DataFrame(rows_box).to_csv(os.path.join(fd_dir, "figure_03_descriptives_srl_box.csv"), index=False)
+        hist_rows, kde_rows = [], []
+        for v, lab in [("srl_z", "Slow Risk Load"), ("ses_z", "SES risk"), ("str_z", "Structural stress"), ("hlt_z", "Health risk"), ("PHQsum", "PHQ-9 sum score")]:
+            x = net[v].dropna().to_numpy(float)
+            edges = np.arange(-0.5, 28.5, 1.0) if v == "PHQsum" else np.linspace(np.floor(x.min() * 4) / 4, np.ceil(x.max() * 4) / 4, 61)
+            dens, _ = np.histogram(x, bins=edges, density=True)
+            hist_rows += [dict(variable=lab, left=edges[i], right=edges[i + 1], density=dens[i]) for i in range(len(dens))]
+            grid = np.linspace(edges[0], edges[-1], 256); kde = stats.gaussian_kde(x)(grid)
+            kde_rows += [dict(variable=lab, x=gx, density=gy) for gx, gy in zip(grid, kde)]
+        pd.DataFrame(hist_rows).to_csv(os.path.join(fd_dir, "supp_S1_histograms.csv"), index=False)
+        pd.DataFrame(kde_rows).to_csv(os.path.join(fd_dir, "supp_S1_densities.csv"), index=False)
+        say(f"\n== figdata: summaries written to {fd_dir} ==")
+
     if want("C0b"):
         say("\n== C0b: revised SRL, median split ==")
         mgr = four_models(X1, pd.DataFrame(dict(g=gr)), "g", tag="revised split: ")
         say(mgr["table"].to_string()); say(mgr["lrt"].to_string())
         mgr["table"].to_csv(os.path.join(outdir, "C0b_revised_split.csv"), index=False)
+
+    if want("mgtables"):
+        # Multigroup models (median split): activation estimates and diagnostics.
+        say("\n== mgtables: multigroup activation estimates ==")
+        mg = four_models(X1, pd.DataFrame(dict(g=gr)), "g", tag="split: ")
+        rows = []
+        for key, lab in [("full", "fully group-specific"), ("hOnly", "common interactions")]:
+            f = mg["fits"][key]
+            lo = f.theta[[f"h{i+1}:(Intercept)" for i in range(9)]].to_numpy()
+            dh = h_coef(f, "g")
+            for i, sname in enumerate(SYMPTOMS):
+                rows.append(dict(model=lab, symptom=sname, h_low=lo[i], h_high=lo[i] + dh.est[i], diff=dh.est[i],
+                                 se=dh.se[i], lo=dh.lo[i], hi=dh.hi[i], p=dh.p[i], p_holm=dh.p_holm[i]))
+        pd.DataFrame(rows).to_csv(os.path.join(outdir, "MG_activation_estimates.csv"), index=False)
+        diag = []
+        for key, f in mg["fits"].items():
+            diag.append(dict(model=f.label, k=f.k, LL=f.ll, iterations=f.iter, max_abs_gradient=f.max_grad,
+                             min_eigenvalue_information=f.info_min_eig))
+        pd.DataFrame(diag).to_csv(os.path.join(outdir, "MG_diagnostics.csv"), index=False)
+        mg["table"].to_csv(os.path.join(outdir, "MG_table.csv"), index=False)
+        mg["lrt"].to_csv(os.path.join(outdir, "MG_lrt.csv"), index=False)
+        say(pd.DataFrame(rows).round(3).to_string()); say(pd.DataFrame(diag).to_string())
 
     full_cache = {}
     def main_full():
@@ -454,6 +566,24 @@ def main(data, outdir, sections):
         imp = pd.DataFrame({lab: implied_marginals(main_full(), *prof(zv)) for lab, zv in [("SRL -1 SD", -1), ("SRL +1 SD", 1)]}, index=SYMPTOMS)
         say("Model-implied symptom probabilities (mean age, male, non-Dutch):"); say(imp.round(3).to_string())
         imp.to_csv(os.path.join(outdir, "C_implied_marginals.csv"))
+
+    if want("rexport"):
+        # Inputs for the R figure scripts (revision/make_figures_current_srl.R).
+        # Participant-level file goes to data/, which is not tracked by git.
+        ex = pd.DataFrame({
+            "slow_risk_z": net["srl_z"], "SES_z": net["ses_z"], "stress_z": net["str_z"], "health_z": net["hlt_z"],
+            "PHQsum": net["PHQsum"],
+            "slow_group": np.where(gr == 1, "High Slow Risk", "Low Slow Risk"),
+            "dutch_grp": np.where(net["nonDutch"] == 1, "Non-Dutch", "Dutch"),
+            "age_grp": np.where(net["age"] >= net["age"].median(), "Older", "Younger")})
+        ex.to_csv(os.path.join("data", "analysis_sample_current.csv"), index=False)
+        h = pd.read_csv(os.path.join(outdir, "C_srl_h.csv"))
+        labels = dict(anh="Anhedonia", dep="Depressed mood", slp="Sleep problems", ene="Low energy", app="Appetite change",
+                      glt="Guilt", con="Concentration problems", mot="Psychomotor change", sui="Suicidality")
+        pd.DataFrame(dict(symptom=h.symptom, symptom_label=h.symptom.map(labels), difference_high_minus_low=h.est,
+                          ci_95_lower=h.lo, ci_95_upper=h.hi)).to_csv(
+            os.path.join(outdir, "figure_srl_activation_effects.csv"), index=False)
+        say(f"\n== rexport: data/analysis_sample_current.csv ({len(ex)} rows) and figure_srl_activation_effects.csv ==")
 
     if want("Corig"):
         say("\n== C-orig: moderated Ising with the ORIGINAL SRL (continuous) ==")
@@ -511,25 +641,62 @@ def main(data, outdir, sections):
             say(mg["table"].to_string()); say(mg["lrt"][["test", "chisq", "df", "p"]].to_string())
 
     if want("G"):
+        # Two mechanisms that give the same phi network.
+        # Group A and B share the fitted interactions J0; activation is h0 -/+ beta
+        # at SRL -1/+1 SD, with covariates set to zero and SRL moderation of J
+        # switched off. Mechanism 1 keeps activation at the
+        # Group A values and solves for interactions that reproduce Group B's
+        # observed (phi) association network.
         say("\n== G: Fig. 1 parameters ==")
         full = main_full()
         sp = SPACES[9]; Bh, BJ = full.map.split(full.map.M @ full.theta.to_numpy())
-        h0 = Bh[0]; Jv = BJ[0].copy()
+        h0 = Bh[0]; beta = Bh[full.h_names.index("srl_z")]; J0 = BJ[0].copy()
+        hA, hB = h0 - beta, h0 + beta
         def dist(h, Jvec):
             e = sp.Tst @ np.concatenate([h, Jvec]); pr = np.exp(e - e.max()); return pr / pr.sum()
         def phi(pr):
             S = sp.Tst[:, :9]; mu = pr @ S; C = (S * pr[:, None]).T @ S - np.outer(mu, mu)
             return C / np.sqrt(np.outer(np.diag(C), np.diag(C)))
-        gc = [k for k, (a, b) in enumerate(sp.pairs) if (SYMPTOMS[a], SYMPTOMS[b]) == ("glt", "con")][0]
-        JB = Jv.copy(); JB[gc] += 1.0
-        target = phi(dist(h0, JB)); iu = np.triu_indices(9, 1)
-        obj = lambda h: np.sum((phi(dist(h, Jv)) - target)[iu] ** 2)
-        hC = optimize.minimize(obj, h0, method="BFGS").x
-        say("RMS phi difference scenario B vs C (group 2): %.4f" % np.sqrt(np.mean((phi(dist(hC, Jv)) - target)[iu] ** 2)))
-        pd.DataFrame(dict(symptom=SYMPTOMS, h_group1=h0, h_scenC_group2=hC)).to_csv(os.path.join(outdir, "G_fig1_activation.csv"), index=False)
-        for nm, M_ in [("group1", phi(dist(h0, Jv))), ("scenB_group2", target), ("scenC_group2", phi(dist(hC, Jv)))]:
-            pd.DataFrame(M_, index=SYMPTOMS, columns=SYMPTOMS).to_csv(os.path.join(outdir, f"G_phi_{nm}.csv"))
+        iu = np.triu_indices(9, 1)
+        phiA, phiB = phi(dist(hA, J0)), phi(dist(hB, J0))
+        JB = optimize.minimize(lambda J: np.sum((phi(dist(hA, J)) - phiB)[iu] ** 2), J0, method="L-BFGS-B").x
+        phiB1 = phi(dist(hA, JB))
+        say("max |phi| difference between mechanisms for Group B: %.6f" % np.abs(phiB1 - phiB)[iu].max())
+        say("interaction changes needed under mechanism 1: %d of 36 with |dJ| > 0.1" % int((np.abs(JB - J0) > 0.1).sum()))
+        def sym(v):
+            M_ = np.zeros((9, 9)); M_[sp.pairs[:, 0], sp.pairs[:, 1]] = v; return M_ + M_.T
+        for nm, M_ in [("phi_groupA", phiA), ("phi_groupB", phiB), ("phi_groupB_mechanism1", phiB1),
+                       ("J_shared", sym(J0)), ("J_groupB_mechanism1", sym(JB))]:
+            pd.DataFrame(M_, index=SYMPTOMS, columns=SYMPTOMS).to_csv(os.path.join(outdir, f"G_{nm}.csv"))
+        # Exploratory five-symptom schematic: sleep, fatigue, low mood,
+        # guilt, concentration, with the fitted interactions on five edges and the
+        # fitted activation shifts at -/+ 2 SD of SRL.
+        sel = [SYMPTOMS.index(x) for x in ["slp", "ene", "dep", "glt", "con"]]
+        sp5 = SPACES.setdefault(5, Space(5)); J0m = sym(J0)
+        chain = {(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)}
+        J5 = np.array([J0m[sel[a_], sel[b_]] if (a_, b_) in chain else 0.0 for a_, b_ in sp5.pairs])
+        h5A, h5B = (h0 - 2 * beta)[sel], (h0 + 2 * beta)[sel]
+        def dist5(h, Jvec):
+            e = sp5.Tst @ np.concatenate([h, Jvec]); pr = np.exp(e - e.max()); return pr / pr.sum()
+        def phi5(pr):
+            S = sp5.Tst[:, :5]; mu = pr @ S; C = (S * pr[:, None]).T @ S - np.outer(mu, mu)
+            return C / np.sqrt(np.outer(np.diag(C), np.diag(C)))
+        iu5 = np.triu_indices(5, 1)
+        P5A, P5B = phi5(dist5(h5A, J5)), phi5(dist5(h5B, J5))
+        J5B = optimize.minimize(lambda J: np.sum((phi5(dist5(h5A, J)) - P5B)[iu5] ** 2), J5, method="BFGS", options=dict(gtol=1e-10)).x
+        say("five-symptom schematic: max |phi| difference between mechanisms %.2e" % np.abs(phi5(dist5(h5A, J5B)) - P5B)[iu5].max())
+        pd.DataFrame(dict(from_=[["slp", "ene", "dep", "glt", "con"][a_] for a_, _ in sp5.pairs],
+                          to=[["slp", "ene", "dep", "glt", "con"][b_] for _, b_ in sp5.pairs],
+                          phi_A=P5A[iu5], phi_B=P5B[iu5], J_shared=J5, J_B_mechanism1=J5B)).rename(columns={"from_": "from"}).to_csv(
+            os.path.join(outdir, "G5_edges.csv"), index=False)
+        pd.DataFrame(dict(symptom=["slp", "ene", "dep", "glt", "con"], h_A=h5A, h_B=h5B,
+                          baseline_A=1 / (1 + np.exp(-h5A)), baseline_B=1 / (1 + np.exp(-h5B)))).to_csv(
+            os.path.join(outdir, "G5_nodes.csv"), index=False)
+        pd.DataFrame(dict(symptom=SYMPTOMS, h_groupA=hA, h_groupB=hB,
+                          prev_groupA=dist(hA, J0) @ sp.Tst[:, :9], prev_groupB_mechanism2=dist(hB, J0) @ sp.Tst[:, :9],
+                          prev_groupB_mechanism1=dist(hA, JB) @ sp.Tst[:, :9])).to_csv(os.path.join(outdir, "G_activation_prevalence.csv"), index=False)
     say(f"\nDone in {time.time() - t0:.0f}s")
+    log.close()
 
 
 if __name__ == "__main__":
@@ -537,7 +704,7 @@ if __name__ == "__main__":
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--data", default="data/helius.sav")
     ap.add_argument("--out", default="results/revision_analyses")
-    ap.add_argument("--sections", default="all", help="comma list: C0,A,C0b,C,Corig,B,Dses,Dstr,Dhlt,Djoint,E,Esplit,F,FDutch,FnonDutch,G")
+    ap.add_argument("--sections", default="all", help="comma-separated sections, or all")
     a = ap.parse_args()
     if a.selftest: selftest()
     else: main(a.data, a.out, a.sections)

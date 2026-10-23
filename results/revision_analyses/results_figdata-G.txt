@@ -1,0 +1,9 @@
+Revision analyses 2026-10-20 15:32
+Records in source dataset: 24780
+
+== figdata: summaries written to results/figure_data ==
+
+== G: Fig. 1 parameters ==
+RMS phi difference scenario B vs C (group 2): 0.0354
+
+Done in 8s

@@ -1,32 +1,30 @@
 # =============================================================================
 # revision/mgm_ordinal_check.R
 #
-# Ordinal cross-check for the revision (Reviewer 1, points 4 and 10):
-# a regularized moderated mixed graphical model (Haslbeck, 2022) in which the
-# nine PHQ-9 items keep their original 0-3 scale and continuous Slow Risk Load
-# moderates every pairwise symptom relation.
+# Cross-check of the moderated Ising results with mgm. The PHQ-9 items keep
+# their 0-3 response categories (as categorical nodes, so the order is not
+# used) and continuous Slow Risk Load is the moderator.
 #
 # Run from the repository root in RStudio:   source("revision/mgm_ordinal_check.R")
 #
-# Input : results/revision_analyses/network_sample_ordinal.csv
-#         (the same 23,270 participants as the exact Ising analyses; written by
-#         revision/revision_analyses.py)
+# Input : data/network_sample_ordinal.csv
+#         (same analytic sample as the exact Ising analyses; written by
+#         python3 revision/revision_analyses.py --sections export)
 # Output: results/revision_analyses/mgm_*.csv and mgm_*.rds
 #
-# Runtime: categorical nodes with moderation are slow at n = 23,270; expect
-# tens of minutes per model. Set QUICK_TEST <- TRUE to try a 3,000-person
-# subsample first.
+# QUICK_TEST <- TRUE: 3,000-person subsample, written to quick_test/
 # =============================================================================
 
 QUICK_TEST <- FALSE
 
-if (!requireNamespace("mgm", quietly = TRUE)) install.packages("mgm")
+if (!requireNamespace("mgm", quietly = TRUE)) stop("Install package mgm before running this script.", call. = FALSE)
 library(mgm)
-cat("mgm version:", as.character(packageVersion("mgm")), "\n")
 
 out_dir <- "results/revision_analyses"
-d <- read.csv(file.path(out_dir, "network_sample_ordinal.csv"))
-if (QUICK_TEST) { set.seed(1); d <- d[sample(nrow(d), 3000), ] }
+if (QUICK_TEST) out_dir <- file.path(out_dir, "quick_test")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+d <- read.csv(file.path("data", "network_sample_ordinal.csv"))
+if (QUICK_TEST) { set.seed(1); d <- d[sample.int(nrow(d), min(nrow(d), 3000L)), ] }
 symptoms <- c("anh", "dep", "slp", "ene", "app", "glt", "con", "mot", "sui")
 
 run_mgm <- function(moderator, item_type = c("ordinal", "binary")) {
@@ -41,16 +39,15 @@ run_mgm <- function(moderator, item_type = c("ordinal", "binary")) {
   cat("\n==", tag, "==\n")
   set.seed(20261020)
   t0 <- Sys.time()
-  fit <- tryCatch(
-    mgm(data = dat, type = type, level = level, moderators = 10,
-        lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND",
-        scale = FALSE, pbar = TRUE),
-    error = function(e) { message("mgm error: ", conditionMessage(e)); NULL })
-  if (is.null(fit)) return(invisible(NULL))
+  if (anyNA(dat) || any(!is.finite(dat))) stop("Non-finite values in ", tag, call. = FALSE)
+  fit <- mgm(data = dat, type = type, level = level, moderators = 10,
+             lambdaSel = "EBIC", lambdaGam = 0.25, ruleReg = "AND",
+             scale = FALSE, pbar = TRUE)
   cat("time:", format(Sys.time() - t0), "\n")
   saveRDS(fit, file.path(out_dir, paste0(tag, ".rds")))
 
-  # pairwise terms: symptom-symptom edges and SRL main effects on symptoms
+  # pairwise terms: symptom-symptom edges and SRL main effects
+  # (weightsAgg are aggregated absolute weights, so no sign)
   pw  <- fit$interactions$indicator[[1]]
   pww <- unlist(fit$interactions$weightsAgg[[1]])
   pair_tab <- data.frame(v1 = labels[pw[, 1]], v2 = labels[pw[, 2]], weight = pww)
@@ -78,10 +75,12 @@ run_mgm <- function(moderator, item_type = c("ordinal", "binary")) {
 }
 
 sink(file.path(out_dir, "mgm_summary.txt"), split = TRUE)
+cat("mgm version:", as.character(packageVersion("mgm")), "\n")
+cat("Rows:", nrow(d), " Quick test:", QUICK_TEST, "\n")
 fits <- list(
-  ordinal_srl     = run_mgm("srl_z",     "ordinal"),   # main ordinal check
-  ordinal_nonover = run_mgm("srl_nov_z", "ordinal"),   # non-overlapping SRL
-  binary_srl      = run_mgm("srl_z",     "binary")     # regularized analogue of the exact model
+  ordinal_srl     = run_mgm("srl_z",     "ordinal"),
+  ordinal_nonover = run_mgm("srl_nov_z", "ordinal"),   # SRL without overlapping indicators
+  binary_srl      = run_mgm("srl_z",     "binary")     # regularized version of the binary model
 )
 sink()
 cat("\nDone. Summary in", file.path(out_dir, "mgm_summary.txt"), "\n")

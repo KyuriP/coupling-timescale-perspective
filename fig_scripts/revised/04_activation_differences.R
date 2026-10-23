@@ -3,7 +3,7 @@
 # ==============================================================================
 
 if (!exists("theme_revised")) {
-  source("fig_scripts/revised/00_revised_figure_setup.R")
+  source("fig_scripts/revised/00_figure_setup.R")
 }
 
 input_file <- file.path(

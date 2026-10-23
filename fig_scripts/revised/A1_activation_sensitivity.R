@@ -7,7 +7,7 @@
 # ==============================================================================
 
 if (!exists("theme_revised")) {
-  source("fig_scripts/revised/00_revised_figure_setup.R")
+  source("fig_scripts/revised/00_figure_setup.R")
 }
 
 model_file <- file.path(
@@ -235,7 +235,6 @@ fig_S2 <- ggplot(
   ) +
   geom_errorbarh(
     aes(xmin = lower, xmax = upper),
-    width = 0.16,
     linewidth = 0.65,
     position = position_dodge(width = 0.52)
   ) +

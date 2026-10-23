@@ -2,4 +2,12 @@
 /data
 /exploration
 .Rproj.user
-/results/revision_analyses/*.rds
+# R model objects can contain the data
+*.rds
+*.RData
+*.rda
+.Rhistory
+__pycache__/
+*.py[cod]
+/revision/.venv/
+/results/revision_analyses/quick_test/

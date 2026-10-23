@@ -1,0 +1,6 @@
+Revision analyses 2026-10-20 16:03
+Records in source dataset: 24780
+
+== rexport: data/analysis_sample_current.csv (23270 rows) and figure_srl_activation_effects.csv ==
+
+Done in 8s

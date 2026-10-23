@@ -1,13 +1,14 @@
 # ==============================================================================
 # figure_nct_comparison.R
 #
-# Create a main-text NCT figure:
+# NCT figure (Supplementary Fig. S2):
 #   A. Low Slow Risk network
 #   B. High Slow Risk network
 #   C. Global strength summary
 #
 # Run from the repository root:
-#   source("figure_nct_comparison.R")
+#   source("fig_scripts/revised/03_nct_comparison.R")
+# The manuscript version is made by revision/make_figures_current_srl.R.
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -141,6 +142,7 @@ maximum_edge <- max(abs(c(network_low, network_high)), na.rm = TRUE)
 # ------------------------------------------------------------------------------
 
 M_value <- extract_first_numeric(summary_df, c(
+  "network_structure_statistic_M",
   "network_structure_invariance",
   "structure_invariance",
   "M",
@@ -156,6 +158,7 @@ M_p <- extract_first_numeric(summary_df, c(
 ))
 
 S_value <- extract_first_numeric(summary_df, c(
+  "global_strength_difference_S",
   "global_strength_difference",
   "S",
   "glstrinv.real"
@@ -179,13 +182,10 @@ GS_high <- extract_first_numeric(summary_df, c(
   "glstr.high"
 ))
 
-# Fallbacks if the summary file uses unexpected column names
-if (is.na(GS_low))  GS_low  <- 22.62
-if (is.na(GS_high)) GS_high <- 23.73
-if (is.na(M_value)) M_value <- 0.319
-if (is.na(M_p))     M_p     <- 0.378
-if (is.na(S_value)) S_value <- 1.116
-if (is.na(S_p))     S_p     <- 0.0037
+# stop if anything is missing from the summary file
+if (any(!is.finite(c(GS_low, GS_high, M_value, M_p, S_value, S_p)))) {
+  stop("NCT summary is missing a required finite statistic or p-value.")
+}
 
 # ------------------------------------------------------------------------------
 # Plotting function
